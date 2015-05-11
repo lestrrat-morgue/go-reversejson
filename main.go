@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 )
 
 var camelingRegex = regexp.MustCompile("[0-9A-Za-z]+")
@@ -35,27 +34,33 @@ func main() {
 	}
 
 	out := &bytes.Buffer{}
-	encode(out, thing, "  ", *name, 0)
-	out.WriteString("}\n")
+	encode(out, thing, "", *name, 0)
 	os.Stdout.Write(out.Bytes())
 }
 
-func encode(out *bytes.Buffer, thing interface{}, prefix, name string, counter int) {
+func encode(out *bytes.Buffer, thing interface{}, prefix, name string, nest int) {
 	switch thing.(type) {
 	case map[string]interface{}:
-		encodeMap(out, thing.(map[string]interface{}), prefix, name, counter)
+		// OK, no op
 	default:
 		log.Fatalf("Unsupported type: %s", reflect.TypeOf(thing))
 	}
-}
 
-func encodeMap(out *bytes.Buffer, thing map[string]interface{}, prefix, name string, counter int) {
-	if counter == 0 {
-		out.WriteString(prefix + "type " + name + " struct {\n")
+	if nest == 0 {
+		out.WriteString("type " + name + " struct {\n")
 	} else {
-		out.WriteString(prefix + "type " + name + strconv.Itoa(counter) + " struct {\n")
+		out.WriteString("struct {\n")
 	}
 
+	encodeMapElems(out, thing.(map[string]interface{}), prefix + "  ", name, nest)
+	if nest == 0 {
+		out.WriteString(prefix + "}\n")
+	} else {
+		out.WriteString(prefix + "}")
+	}
+}
+
+func encodeMapElems(out *bytes.Buffer, thing map[string]interface{}, prefix, name string, nest int) {
 	keys := []string{}
 	for k := range thing {
 		keys = append(keys, k)
@@ -78,11 +83,9 @@ func encodeMap(out *bytes.Buffer, thing map[string]interface{}, prefix, name str
 			// Assume list of strings
 			out.WriteString("[]string")
 		default:
-			encode(out, v, prefix+"  ", name, counter+1)
+			encode(out, v, prefix, name, nest + 1)
 		}
 
 		out.WriteString(" `json:\"" + k + "\"`\n")
 	}
-
-	out.WriteString(prefix + "}\n")
 }
