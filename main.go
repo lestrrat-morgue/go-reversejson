@@ -72,7 +72,9 @@ func encodeMap(out *bytes.Buffer, thing map[string]interface{}, prefix string) {
 			// Assume list of strings
 			out.WriteString("[]string")
 		default:
+			out.WriteString("struct {\n")
 			encode(out, v, prefix+"  ")
+			out.WriteString(prefix + "}")
 		}
 
 		out.WriteString(" `json:\"" + k + "\"`\n")
