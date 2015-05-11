@@ -17,7 +17,7 @@ cat foo.json | go run main.go -name StructName
 
 and it outputs something that's close enough.
 
-My use case is this: I was looking to implement some OAuth stuff in go,
+My use case is this: I was looking to implement some OpenID Connect stuff in go,
 and found JSON structures like this (https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.4.2):
 
 ```json
